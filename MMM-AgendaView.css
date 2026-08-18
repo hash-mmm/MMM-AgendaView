@@ -1,0 +1,155 @@
+.mmm-agendaview {
+  width: 100%;
+  font-size: 0.74em;
+}
+
+/* ── Day header ──────────────────────────────────────────────────────────── */
+
+.mmm-agendaview-day-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.78em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  padding: 16px 0 4px;
+  margin-bottom: 0;
+}
+
+.mmm-agendaview-day-header::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* ── Gradient day header ─────────────────────────────────────────────────── */
+
+.mmm-agendaview-day-header.gradient {
+  background: linear-gradient(to right, #89f7fe, #66a6ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.mmm-agendaview-day-header.gradient::after {
+  background: linear-gradient(to right, rgba(137, 247, 254, 0.25), transparent);
+}
+
+.mmm-agendaview-day-header:first-child {
+  padding-top: 2px;
+}
+
+/* ── All-day boxes ───────────────────────────────────────────────────────── */
+
+.mmm-agendaview-allday-boxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 5px;
+}
+
+.mmm-agendaview-allday-boxes.no-wrap {
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+
+.mmm-agendaview-allday-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px 3px 7px;
+  border-radius: 4px;
+  border-left: 3px solid;              /* color set inline */
+  background: rgba(255, 255, 255, 0.07);
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.mmm-agendaview-allday-title {
+  font-size: 0.85em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+
+/* ── Timed event rows ────────────────────────────────────────────────────── */
+
+.mmm-agendaview-event {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 0;
+}
+
+/* FA icon used as calendar indicator on event rows */
+.mmm-agendaview-row-icon {
+  flex-shrink: 0;
+  font-size: 0.8em;
+  width: 14px;
+  text-align: center;
+}
+
+/* Dot fallback when no symbol is defined */
+.mmm-agendaview-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── Event info block ────────────────────────────────────────────────────── */
+
+.mmm-agendaview-info {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Title row: optional day label + title on one line */
+.mmm-agendaview-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+
+.mmm-agendaview-event-time {
+  flex-shrink: 0;
+  font-size: 0.85em;
+  opacity: 0.7;
+  white-space: nowrap;
+}
+
+.mmm-agendaview-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.35;
+}
+
+.mmm-agendaview-meta {
+  margin-top: 1px;
+  opacity: 0.65;
+  line-height: 1.3;
+}
+
+.mmm-agendaview-location {
+  margin-top: 1px;
+  opacity: 0.55;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── No-events placeholder ───────────────────────────────────────────────── */
+
+.mmm-agendaview-empty {
+  padding: 6px 0;
+  font-style: italic;
+  opacity: 0.6;
+}
