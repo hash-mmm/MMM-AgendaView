@@ -27,19 +27,35 @@
 
 /* ── Gradient day header ─────────────────────────────────────────────────── */
 
-.mmm-agendaview-day-header.gradient {
-  background: linear-gradient(to right, #89f7fe, #66a6ff);
+.mmm-agendaview-day-countdown {
+  opacity: 0.85;
+  margin-right: 2px;
+}
+
+.mmm-agendaview-day-header.gradient .mmm-agendaview-day-countdown {
+  background: linear-gradient(to right, #f7971e, #ffd200);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.mmm-agendaview-day-header.gradient .mmm-agendaview-day-label {
+  background: linear-gradient(to right, #89f7fe, #a29bfe);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .mmm-agendaview-day-header.gradient::after {
-  background: linear-gradient(to right, rgba(137, 247, 254, 0.25), transparent);
+  background: linear-gradient(to right, rgba(162, 155, 254, 0.3), transparent);
 }
 
 .mmm-agendaview-day-header:first-child {
   padding-top: 2px;
+}
+
+.mmm-agendaview.no-first-line .mmm-agendaview-day-header:first-child::after {
+  display: none;
 }
 
 /* ── All-day boxes ───────────────────────────────────────────────────────── */

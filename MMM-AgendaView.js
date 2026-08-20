@@ -14,6 +14,9 @@ Module.register("MMM-AgendaView", {
     // Cap on total events rendered.
     maxEvents: 30,
 
+    // Show only the first N days that have events (null = disabled, use daysAhead window only).
+    nextEventDays: null,
+
     // Show timed event start time.
     showTime: true,
     // Show end time alongside start time.
@@ -51,6 +54,18 @@ Module.register("MMM-AgendaView", {
 
     // Gradient color for day header text. Set to false for plain white.
     dayHeaderGradient: true,
+
+    // Prefix non-today day titles with days remaining, e.g. "in 5d Wed, Sep 5".
+    showDaysRemaining: true,
+
+    // Use 3-letter abbreviated day names: "Wed" instead of "Wednesday".
+    shortDayName: true,
+
+    // Use 3-letter abbreviated month names: "Sep" instead of "September".
+    shortMonth: true,
+
+    // Hide the extending horizontal line on the first day header.
+    hideFirstDayLine: true,
 
     // Re-render interval (ms) — keeps Today/Tomorrow labels current.
     updateInterval: 60 * 1000,
@@ -145,16 +160,32 @@ Module.register("MMM-AgendaView", {
       });
   },
 
-  _dayLabel(date) {
+  // Returns { countdown: "in 5d" | null, label: "Wed, Sep 5" }
+  _dayParts(date) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
-    if (date.getTime() === today.getTime()) return "Today";
-    if (date.getTime() === tomorrow.getTime()) return "Tomorrow";
-    const DAYS   = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-    const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-    return `${DAYS[date.getDay()]}, ${MONTHS[date.getMonth()]} ${date.getDate()}`;
+    const daysAway = Math.round((date - today) / (24 * 60 * 60 * 1000));
+
+    const DAYS_FULL    = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    const DAYS_SHORT   = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+    const MONTHS_FULL  = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+    const MONTHS_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+    let label;
+    if (date.getTime() === today.getTime()) {
+      label = "Today";
+    } else if (date.getTime() === tomorrow.getTime()) {
+      label = "Tomorrow";
+    } else {
+      const dayName   = this.config.shortDayName ? DAYS_SHORT[date.getDay()]     : DAYS_FULL[date.getDay()];
+      const monthName = this.config.shortMonth   ? MONTHS_SHORT[date.getMonth()] : MONTHS_FULL[date.getMonth()];
+      label = `${dayName}, ${monthName} ${date.getDate()}`;
+    }
+
+    const countdown = (this.config.showDaysRemaining && daysAway > 0) ? `in ${daysAway}d` : null;
+    return { countdown, label };
   },
 
   _formatTime(ts, fullDay) {
@@ -252,7 +283,7 @@ Module.register("MMM-AgendaView", {
 
   getDom() {
     const wrapper = document.createElement("div");
-    wrapper.className = "mmm-agendaview";
+    wrapper.className = "mmm-agendaview" + (this.config.hideFirstDayLine ? " no-first-line" : "");
 
     if (!this.loaded) {
       const loading = document.createElement("div");
@@ -273,11 +304,29 @@ Module.register("MMM-AgendaView", {
 
     const useBoxes = this.config.allDayStyle === "box";
 
-    for (const group of this._groupByDay(events)) {
+    let groups = this._groupByDay(events);
+    if (this.config.nextEventDays != null) {
+      groups = groups.slice(0, this.config.nextEventDays);
+    }
+
+    for (const group of groups) {
       if (this.config.showDayHeader) {
         const header = document.createElement("div");
         header.className = "mmm-agendaview-day-header" + (this.config.dayHeaderGradient ? " gradient" : "");
-        header.textContent = this._dayLabel(group.date);
+
+        const { countdown, label } = this._dayParts(group.date);
+        if (countdown) {
+          const cdEl = document.createElement("span");
+          cdEl.className = "mmm-agendaview-day-countdown";
+          cdEl.textContent = countdown;
+          header.appendChild(cdEl);
+        }
+
+        const labelEl = document.createElement("span");
+        labelEl.className = "mmm-agendaview-day-label";
+        labelEl.textContent = label;
+        header.appendChild(labelEl);
+
         wrapper.appendChild(header);
       }
 
