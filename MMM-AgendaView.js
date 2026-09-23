@@ -21,6 +21,9 @@ Module.register("MMM-AgendaView", {
     showTime: true,
     // Show end time alongside start time.
     showEndTime: false,
+    // "compact" → "9-11am" / "4:10-5:30pm"   (drops :00, shared am/pm)
+    // "full"    → "9:00 AM – 11:00 AM"        (original padded style)
+    endTimeFormat: "compact",
     // Show calendar name in the meta line.
     showCalendarName: false,
     // Show location when present.
@@ -206,6 +209,32 @@ Module.register("MMM-AgendaView", {
     return `${h % 12 || 12}:${String(d.getMinutes()).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
   },
 
+  // Compact time range: drops :00 when minutes are zero, lowercase am/pm,
+  // shared suffix when both ends share the same period.
+  // 12h examples: 9:00am–11:00am → "9-11am",  4:10pm–5:30pm → "4:10-5:30pm"
+  //               11:30am–1:00pm → "11:30am-1pm"
+  // 24h examples: 09:00–11:00 → "9-11",  16:10–17:30 → "16:10-17:30"
+  _formatRange(startTs, endTs) {
+    const fmt = ts => {
+      const d = new Date(ts);
+      const h = d.getHours();
+      const m = d.getMinutes();
+      if (this.config.timeFormat === 24) {
+        return { str: m === 0 ? String(h) : `${h}:${String(m).padStart(2, "0")}`, period: "" };
+      }
+      const h12 = h % 12 || 12;
+      return {
+        str:    m === 0 ? String(h12) : `${h12}:${String(m).padStart(2, "0")}`,
+        period: h >= 12 ? "pm" : "am",
+      };
+    };
+    const s = fmt(startTs);
+    const e = fmt(endTs);
+    if (this.config.timeFormat === 24) return `${s.str}-${e.str}`;
+    if (s.period === e.period)         return `${s.str}-${e.str}${e.period}`;
+    return `${s.str}${s.period}-${e.str}${e.period}`;
+  },
+
   // ── Icon / dot helper ────────────────────────────────────────────────────
 
   _makeCalendarIndicator(ev, extraClass) {
@@ -256,8 +285,16 @@ Module.register("MMM-AgendaView", {
     if (this.config.showTime) {
       const timeEl = document.createElement("span");
       timeEl.className = "mmm-agendaview-event-time dimmed";
-      let t = this._formatTime(ev.startDate, ev.fullDay);
-      if (this.config.showEndTime && !ev.fullDay) t += ` – ${this._formatTime(ev.endDate, false)}`;
+      let t;
+      if (ev.fullDay) {
+        t = "All day";
+      } else if (this.config.showEndTime && this.config.endTimeFormat === "full") {
+        t = `${this._formatTime(ev.startDate, false)} – ${this._formatTime(ev.endDate, false)}`;
+      } else if (this.config.showEndTime) {
+        t = this._formatRange(ev.startDate, ev.endDate);
+      } else {
+        t = this._formatTime(ev.startDate, false);
+      }
       timeEl.textContent = t;
       titleRow.appendChild(timeEl);
     }
