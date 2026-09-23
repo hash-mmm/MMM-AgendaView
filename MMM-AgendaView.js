@@ -47,6 +47,10 @@ Module.register("MMM-AgendaView", {
     // 12 or 24.
     timeFormat: 12,
 
+    // Hard cap on the module width (e.g. "350px"). Required when the region
+    // contains only AgendaView instances and has no external width anchor.
+    maxWidth: null,
+
     noEventsText: "No upcoming events",
 
     // Show the day title header above each day's events.
@@ -83,6 +87,7 @@ Module.register("MMM-AgendaView", {
     this.events = [];
     this.loaded = false;
     this.timer = null;
+    this.regionWidth = 0;
 
     this.sendSocketNotification("AGENDAVIEW_INIT", {
       instanceId: this.identifier,
@@ -90,6 +95,9 @@ Module.register("MMM-AgendaView", {
       daysAhead: this.config.daysAhead,
       fetchInterval: this.config.fetchInterval,
     });
+
+    // Re-render after siblings have settled so we can read the true region width.
+    setTimeout(() => this.updateDom(0), 2000);
   },
 
   socketNotificationReceived(notification, payload) {
@@ -282,6 +290,22 @@ Module.register("MMM-AgendaView", {
   // ── Main render ───────────────────────────────────────────────────────────
 
   getDom() {
+    // Pin the outer module element to the region width so long event titles
+    // wrap instead of pushing the region wider.
+    const moduleEl = document.getElementById(this.identifier);
+    if (moduleEl) {
+      const regionEl = moduleEl.parentElement && moduleEl.parentElement.parentElement;
+      if (regionEl && regionEl.offsetWidth > 0) {
+        this.regionWidth = regionEl.offsetWidth;
+      }
+      const maxPx = this.config.maxWidth ? parseInt(this.config.maxWidth, 10) : Infinity;
+      const pinWidth = this.regionWidth > 0 ? Math.min(this.regionWidth, maxPx) : (isFinite(maxPx) ? maxPx : 0);
+      if (pinWidth > 0) {
+        moduleEl.style.width = pinWidth + "px";
+        moduleEl.style.overflow = "hidden";
+      }
+    }
+
     const wrapper = document.createElement("div");
     wrapper.className = "mmm-agendaview" + (this.config.hideFirstDayLine ? " no-first-line" : "");
 
